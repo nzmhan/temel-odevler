@@ -1,42 +1,60 @@
 import tkinter as tk
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, UnidentifiedImageError
 import requests
 from io import BytesIO
 import subprocess
+import os
+
+# Mevcut dizini belirle
+current_directory = os.path.dirname(os.path.abspath(__file__))
 
 def run_script1():
-    subprocess.run(["python", "1.temel ödev.py"])
+    script_path = os.path.join(current_directory, "1.temel ödev.py")
+    subprocess.run(["python", script_path])
 
 def run_script2():
-    subprocess.run(["python", "2.temel ödev.py"])
+    script_path = os.path.join(current_directory, "2.temel ödev.py")
+    subprocess.run(["python", script_path])
 
 def run_script3():
-    subprocess.run(["python", "3.temel ödev.py"])
+    script_path = os.path.join(current_directory, "3.temel ödev.py")
+    subprocess.run(["python", script_path])
 
 def run_script4():
-    subprocess.run(["python", "4.temel ödev.py"])
+    script_path = os.path.join(current_directory, "4.temel ödev.py")
+    subprocess.run(["python", script_path])
 
 # Fonksiyon: Verilen URL'den resmi indirip Image nesnesi olarak döndürmek
 def download_image(url):
-    response = requests.get(url)
-    image = Image.open(BytesIO(response.content))
-    # Resmi LANCZOS filtresiyle yeniden boyutlandır
-    image = image.resize((200, 200), Image.LANCZOS)
-    return image
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # HTTP isteğinin başarılı olup olmadığını kontrol et
+        image = Image.open(BytesIO(response.content))
+        # Resmi LANCZOS filtresiyle yeniden boyutlandır
+        image = image.resize((200, 200), Image.LANCZOS)
+        return image
+    except requests.RequestException as e:
+        print(f"HTTP isteği başarısız: {e}")
+    except UnidentifiedImageError as e:
+        print(f"Görüntü tanınamadı: {e}")
 
 # Ana pencere oluşturma
 root = tk.Tk()
 root.title("Temel Ödev Uygulamaları")
 
 # Resmi indir ve tkinter için ImageTk.PhotoImage nesnesine dönüştür
-image_url = "https://upload.wikimedia.org/wikipedia/commons/3/37/Y%C4%B1ld%C4%B1z_Technical_University_Logo.png"
+image_url = "https://www.yildiz.edu.tr/sites/default/files/2024-02/yildiz-teknik-universitesi-logo-diket-turkce-.png"
 image = download_image(image_url)
-photo = ImageTk.PhotoImage(image)
+if image:
+    photo = ImageTk.PhotoImage(image)
 
-# Resmi bir etiket içinde göster
-image_label = tk.Label(root, image=photo)
-image_label.image = photo  # Referansı kaybetmemek için
-image_label.grid(row=0, column=0, rowspan=5, padx=10, pady=10)
+    # Resmi bir etiket içinde göster
+    image_label = tk.Label(root, image=photo)
+    image_label.image = photo  # Referansı kaybetmemek için
+    image_label.grid(row=0, column=0, rowspan=5, padx=10, pady=10)
+else:
+    image_label = tk.Label(root, text="Resim yüklenemedi", font=("Helvetica", 12, "italic"))
+    image_label.grid(row=0, column=0, rowspan=5, padx=10, pady=10)
 
 # "Nazım Han tarafından programlanmıştır" yazısı
 author_label = tk.Label(root, text="Nazım Han tarafından programlanmıştır", font=("Helvetica", 12, "italic"))

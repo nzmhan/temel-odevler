@@ -15,10 +15,15 @@ def extract_file_id(drive_url):
     return file_id
 
 def download_image_from_drive(drive_url):
-    file_id = extract_file_id(drive_url)
-    dwn_url = get_download_url(file_id)
-    response = requests.get(dwn_url)
-    return Image.open(BytesIO(response.content))
+    try:
+        file_id = extract_file_id(drive_url)
+        dwn_url = get_download_url(file_id)
+        response = requests.get(dwn_url)
+        response.raise_for_status()  # Hata durumunda bir exception fırlatır
+        return Image.open(BytesIO(response.content))
+    except Exception as e:
+        messagebox.showerror("Görsel Yüklenemedi", f"Görsel yüklenirken bir hata oluştu: {e}")
+        return None
 
 # Hesaplama fonksiyonu
 def hesapla():

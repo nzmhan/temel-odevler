@@ -15,10 +15,15 @@ def extract_file_id(drive_url):
     return file_id
 
 def download_image_from_drive(drive_url):
-    file_id = extract_file_id(drive_url)
-    dwn_url = get_download_url(file_id)
-    response = requests.get(dwn_url)
-    return Image.open(BytesIO(response.content))
+    try:
+        file_id = extract_file_id(drive_url)
+        dwn_url = get_download_url(file_id)
+        response = requests.get(dwn_url)
+        response.raise_for_status()  # Hata durumunda bir exception fırlatır
+        return Image.open(BytesIO(response.content))
+    except Exception as e:
+        messagebox.showerror("Görsel Yüklenemedi", f"Görsel yüklenirken bir hata oluştu: {e}")
+        return None
 
 # Hesaplama fonksiyonu
 def hesapla():
@@ -49,11 +54,15 @@ root.title("1.Temel Ödev Uygulaması")
 # Google Drive'dan fotoğrafı indir ve göster
 drive_url = 'https://drive.google.com/file/d/1dKVUndPmAuKFK1DwfWh8rq9ewT9QOxMD/view?usp=sharing'
 image = download_image_from_drive(drive_url)
-photo = ImageTk.PhotoImage(image)
 
-# Fotoğrafı bir etiket içinde göster
-image_label = tk.Label(root, image=photo)
-image_label.image = photo  # Referansı kaybetmemek için
+if image:
+    photo = ImageTk.PhotoImage(image)
+    # Fotoğrafı bir etiket içinde göster
+    image_label = tk.Label(root, image=photo)
+    image_label.image = photo  # Referansı kaybetmemek için
+else:
+    image_label = tk.Label(root, text="Görsel yüklenemedi")
+
 image_label.grid(row=0, column=2, rowspan=4, padx=10, pady=10)
 
 # A Noktası için girdi alanı
@@ -67,7 +76,6 @@ entry_XA.grid(row=0, column=1)
 tk.Label(frame_a, text="YA değeri:").grid(row=1, column=0)
 entry_YA = tk.Entry(frame_a)
 entry_YA.grid(row=1, column=1)
-
 
 # Diğer girdi alanları
 frame_params = tk.LabelFrame(root, text="Parametreler")
